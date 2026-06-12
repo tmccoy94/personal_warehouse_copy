@@ -1,0 +1,224 @@
+# docker-compose.yml
+# Local-first data platform baseline:
+# - Postgres warehouse DB
+# - Dagster OSS web UI + daemon
+# - Daily pg_dump backup sidecar
+#
+# Suggested folder structure:
+# .
+# ├── docker-compose.yml
+# ├── .env                    # do not commit
+# ├── secrets/
+# │   ├── postgres_password.txt
+# │   └── gmail_service_account.json
+# ├── postgres/
+# │   └── init/
+# │       └── 001_init_schemas.sql
+# ├── dagster/
+# │   ├── dagster.yaml
+# │   └── workspace.yaml
+# ├── pipelines/
+# │   ├── Dockerfile
+# │   ├── requirements.txt
+# │   └── src/
+# │       └── definitions.py
+# └── backups/
+
+name: local-data-platform
+
+services:
+  warehouse-postgres:
+    image: postgres:16-alpine
+    container_name: warehouse-postgres
+    # restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-warehouse_admin}
+      POSTGRES_DB: ${POSTGRES_DB:-warehouse}
+      POSTGRES_PASSWORD_FILE: /run/secrets/postgres_password
+      TZ: ${TZ:-America/Chicago}
+    secrets:
+      - postgres_password
+    ports:
+      # Bound to all interfaces so Zoho Data Bridge (on a separate server) can connect.
+      # On the VM this stays the same — just update the IP in Zoho to the VM's IP.
+      - "${POSTGRES_PORT:-5432}:5432"
+    volumes:
+      - warehouse_pgdata:/var/lib/postgresql/data
+      - ./postgres/init:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-warehouse_admin} -d ${POSTGRES_DB:-warehouse}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - data-platform
+
+  dagster-webserver:
+    build:
+      context: ./pipelines
+      dockerfile: Dockerfile
+    container_name: dagster-webserver
+    # restart: unless-stopped
+    command: dagster-webserver -h 0.0.0.0 -p 3000 -w /opt/dagster/app/workspace.yaml
+    environment:
+      DAGSTER_HOME: /opt/dagster/dagster_home
+      DAGSTER_POSTGRES_USER: ${POSTGRES_USER:-warehouse_admin}
+      DAGSTER_POSTGRES_DB: ${POSTGRES_DB:-warehouse}
+      DAGSTER_POSTGRES_HOST: warehouse-postgres
+      DAGSTER_POSTGRES_PORT: 5432
+      DAGSTER_POSTGRES_PASSWORD: ${DAGSTER_POSTGRES_PASSWORD}
+      WAREHOUSE_HOST: warehouse-postgres
+      WAREHOUSE_PORT: 5432
+      WAREHOUSE_DB: ${POSTGRES_DB:-warehouse}
+      WAREHOUSE_USER: ${POSTGRES_USER:-warehouse_admin}
+      WAREHOUSE_PASSWORD: ${DAGSTER_POSTGRES_PASSWORD}
+      # Example external source credentials. Add more as needed.
+      SOURCE_DB_HOST: ${SOURCE_DB_HOST:-}
+      SOURCE_DB_PORT: ${SOURCE_DB_PORT:-}
+      SOURCE_DB_USER: ${SOURCE_DB_USER:-}
+      SOURCE_DB_PASSWORD: ${SOURCE_DB_PASSWORD}
+      TZ: ${TZ:-America/Chicago}
+      JASPER_SERVER_URL: ${JASPER_SERVER_URL}
+      JASPER_USERNAME: ${JASPER_USERNAME}
+      JASPER_PASSWORD: ${JASPER_PASSWORD}
+      HUBSPOT_ACCESS_TOKEN: ${HUBSPOT_ACCESS_TOKEN}
+      WAREHOUSE_SCHEMA: ${WAREHOUSE_SCHEMA:-dev}
+      CSV_DROP_PATH: /data/csv_drop
+      CSV_BACKFILL_PATH: /data/csv_backfill
+      CSV_OUTPUT_PATH: /data/csv_output
+      KEYSTONE_DB_OVERRIDE: ${KEYSTONE_DB_OVERRIDE:-}
+      GMAIL_SA_KEY_PATH: /run/secrets/gmail_service_account
+      GMAIL_SEND_AS: ${GMAIL_SEND_AS:-alerts@example.org}
+      ALERT_EMAIL: ${ALERT_EMAIL:-}
+      DAGSTER_UI_URL: ${DAGSTER_UI_URL:-http://localhost:3000}
+    secrets:
+      - postgres_password
+      - gmail_service_account
+    ports:
+      - "127.0.0.1:${DAGSTER_PORT:-3000}:3000"
+    volumes:
+      - ./dagster:/opt/dagster/dagster_home
+      - ./dagster/workspace.yaml:/opt/dagster/app/workspace.yaml:ro
+      - ./pipelines/src:/opt/dagster/app/src
+      - ./data:/data
+      - ./qa:/opt/dagster/app/qa
+    depends_on:
+      warehouse-postgres:
+        condition: service_healthy
+    networks:
+      - data-platform
+
+  dagster-daemon:
+    build:
+      context: ./pipelines
+      dockerfile: Dockerfile
+    container_name: dagster-daemon
+    # restart: unless-stopped
+    command: >
+      dagster-daemon run
+      -w /opt/dagster/app/workspace.yaml
+    environment:
+      DAGSTER_HOME: /opt/dagster/dagster_home
+      DAGSTER_POSTGRES_USER: ${POSTGRES_USER:-warehouse_admin}
+      DAGSTER_POSTGRES_DB: ${POSTGRES_DB:-warehouse}
+      DAGSTER_POSTGRES_HOST: warehouse-postgres
+      DAGSTER_POSTGRES_PORT: 5432
+      DAGSTER_POSTGRES_PASSWORD: ${DAGSTER_POSTGRES_PASSWORD}
+      WAREHOUSE_HOST: warehouse-postgres
+      WAREHOUSE_PORT: 5432
+      WAREHOUSE_DB: ${POSTGRES_DB:-warehouse}
+      WAREHOUSE_USER: ${POSTGRES_USER:-warehouse_admin}
+      WAREHOUSE_PASSWORD: ${DAGSTER_POSTGRES_PASSWORD}
+      SOURCE_DB_HOST: ${SOURCE_DB_HOST:-}
+      SOURCE_DB_PORT: ${SOURCE_DB_PORT:-}
+      SOURCE_DB_USER: ${SOURCE_DB_USER:-}
+      SOURCE_DB_PASSWORD: ${SOURCE_DB_PASSWORD}
+      TZ: ${TZ:-America/Chicago}
+      JASPER_SERVER_URL: ${JASPER_SERVER_URL}
+      JASPER_USERNAME: ${JASPER_USERNAME}
+      JASPER_PASSWORD: ${JASPER_PASSWORD}
+      HUBSPOT_ACCESS_TOKEN: ${HUBSPOT_ACCESS_TOKEN}
+      WAREHOUSE_SCHEMA: ${WAREHOUSE_SCHEMA:-dev}
+      CSV_DROP_PATH: /data/csv_drop
+      CSV_BACKFILL_PATH: /data/csv_backfill
+      CSV_OUTPUT_PATH: /data/csv_output
+      KEYSTONE_DB_OVERRIDE: ${KEYSTONE_DB_OVERRIDE:-}
+      GMAIL_SA_KEY_PATH: /run/secrets/gmail_service_account
+      GMAIL_SEND_AS: ${GMAIL_SEND_AS:-alerts@example.org}
+      ALERT_EMAIL: ${ALERT_EMAIL:-}
+      DAGSTER_UI_URL: ${DAGSTER_UI_URL:-http://localhost:3000}
+    secrets:
+      - postgres_password
+      - gmail_service_account
+    volumes:
+      - ./dagster:/opt/dagster/dagster_home
+      - ./dagster/workspace.yaml:/opt/dagster/app/workspace.yaml:ro
+      - ./pipelines/src:/opt/dagster/app/src
+      - ./data:/data
+      - ./qa:/opt/dagster/app/qa
+    depends_on:
+      warehouse-postgres:
+        condition: service_healthy
+    networks:
+      - data-platform
+
+  warehouse-backup:
+    image: prodrigestivill/postgres-backup-local:16-alpine
+    container_name: warehouse-backup
+    # restart: unless-stopped
+    environment:
+      POSTGRES_HOST: warehouse-postgres
+      POSTGRES_DB: ${POSTGRES_DB:-warehouse}
+      POSTGRES_USER: ${POSTGRES_USER:-warehouse_admin}
+      POSTGRES_PASSWORD_FILE: /run/secrets/postgres_password
+      SCHEDULE: ${BACKUP_SCHEDULE:-@daily}
+      BACKUP_DIR: /backups
+      BACKUP_KEEP_DAYS: ${BACKUP_KEEP_DAYS:-14}
+      BACKUP_KEEP_WEEKS: ${BACKUP_KEEP_WEEKS:-8}
+      BACKUP_KEEP_MONTHS: ${BACKUP_KEEP_MONTHS:-12}
+      HEALTHCHECK_PORT: 8080
+      TZ: ${TZ:-America/Chicago}
+    secrets:
+      - postgres_password
+    volumes:
+      - ./backups:/backups
+    depends_on:
+      warehouse-postgres:
+        condition: service_healthy
+    networks:
+      - data-platform
+
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    container_name: warehouse-pgadmin
+    # restart: unless-stopped
+    environment:
+      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_DEFAULT_EMAIL:-admin@example.org}
+      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_DEFAULT_PASSWORD}
+      PGADMIN_CONFIG_SERVER_MODE: "False"
+      PGADMIN_CONFIG_MASTER_PASSWORD_REQUIRED: "False"
+      TZ: ${TZ:-America/Chicago}
+    ports:
+      # Local testing URL: http://localhost:5050
+      - "127.0.0.1:${PGADMIN_PORT:-5050}:80"
+    volumes:
+      - pgadmin_data:/var/lib/pgadmin
+    depends_on:
+      warehouse-postgres:
+        condition: service_healthy
+    networks:
+      - data-platform
+
+networks:
+  data-platform:
+    driver: bridge
+
+volumes:
+  warehouse_pgdata:
+  pgadmin_data:
+
+secrets:
+  postgres_password:
+    file: ./secrets/postgres_password.txt
+  gmail_service_account:
+    file: ./secrets/gmail_service_account.json

@@ -1,0 +1,54 @@
+/secrets
+.env
+
+# Holding area for files slated for deletion (contains the leaked password file)
+relocate/
+
+# Old practice folder paths (kept for safety even after relocate move)
+/*/*/*/*/*/shamrock_practice
+/shamrock_practice
+
+# Python build artifacts
+__pycache__/
+*.pyc
+*.pyo
+
+# Dagster runtime state
+dagster/storage/
+dagster/logs/
+dagster/.telemetry/
+dagster/.nux/
+
+# Database backups (contain warehouse PII)
+backups/
+
+# Local data drops + backfills (contain real credit union numbers / member PII)
+# ** patterns: drop folders nest subfolders per source (e.g. fct_digital_enrollments/bill_pay/)
+data/csv_drop/**/*.csv
+data/csv_drop/**/*.tsv
+data/csv_backfill/
+
+# Generated HubSpot exports (contain real credit union member PII)
+data/csv_output/**/*.csv
+
+# HubSpot contact-update working folder (Keystone pull / CRM export / live import / notebook — member PII)
+# Superseded by the hubspot_live_import_csv asset; kept locally for reference only
+hubspot_contact_update/
+
+# Source-system exports kept locally as design references (member PII: SSNs, DOBs, names, contact info)
+schema_design/Drop CSVs/bill_pay_users_source.csv
+schema_design/Drop CSVs/online_banking_source.csv
+schema_design/Drop CSVs/rdcusers.csv
+schema_design/Drop CSVs/member_survey_results.csv
+
+# IDE / OS noise
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# Claude Code local settings (user-specific)
+.claude/settings.local.json
+
+# Python virtual environments
+.venv/

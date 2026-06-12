@@ -1,0 +1,11 @@
+-- Credit scores pulled during loan application.
+-- APPLICANT_SCORE.PARENT_SERIAL = APPLICANT.SERIAL.
+SELECT
+    APPLICANT_SCORE.SERIAL          AS applicant_score_serial,
+    APPLICANT_SCORE.PARENT_SERIAL   AS applicant_serial,
+    APPLICANT_SCORE.SCORE           AS score,
+    APPLICANT_SCORE.SCORE_DATE      AS score_date
+FROM
+    CORE.APPLICANT_SCORE AS APPLICANT_SCORE
+WHERE
+    APPLICANT_SCORE.SCORE_DATE IS NOT NULL

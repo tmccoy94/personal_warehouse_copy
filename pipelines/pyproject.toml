@@ -1,0 +1,38 @@
+[project]
+name = "pipelines"
+version = "0.1.0"
+requires-python = ">=3.12"
+
+dependencies = [
+    "dagster",
+    "dagster-webserver",
+    "dagster-postgres",
+    "psycopg[binary]",
+    "pandas",
+    "python-dateutil",
+    "openpyxl",
+    "xlrd",
+    "requests",
+    "sqlalchemy",
+    "ibm-db",
+    "tabulate>=0.10.0",
+    "google-auth",
+]
+
+[dependency-groups]
+dev = [
+    "pytest",
+]
+
+[tool.pytest.ini_options]
+pythonpath = ["src"]
+testpaths = ["tests"]
+markers = [
+    "integration: runs against the warehouse Postgres container in the disposable `test` schema (skips automatically when Docker is down). Deselect with -m \"not integration\".",
+]
+
+[tool.dg]
+directory_type = "project"
+
+[tool.dg.project]
+root_module = "pipelines"

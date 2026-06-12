@@ -1,0 +1,85 @@
+WITH CurrentAddress(personSerial, street, additionalAddressLine, city, state, postalCode, combinedAddress) AS (
+    SELECT
+        PERSON_SERIAL,
+        COALESCE(ADDRESS.STREET, '') AS STREET,
+        COALESCE(ADDRESS.ADDITIONAL_ADDRESS_LINE, '') AS ADDITIONAL_ADDRESS_LINE,
+        COALESCE(ADDRESS.CITY, '') AS CITY,
+        COALESCE(ADDRESS.STATE, '') AS STATE,
+        COALESCE(ADDRESS.POSTAL_CODE, '') AS POSTAL_CODE,
+        COALESCE(ADDRESS.STREET || ' ', '') || COALESCE(ADDRESS.ADDITIONAL_ADDRESS_LINE || ', ', '') ||
+        COALESCE(ADDRESS.CITY || ' ', '') || COALESCE(ADDRESS.STATE, '') || COALESCE(', ' || ADDRESS.POSTAL_CODE, '') AS COMBINED_ADDRESS
+    FROM
+    (
+        SELECT
+            PAL.PARENT_SERIAL AS PERSON_SERIAL,
+            PAL.ADDRESS_SERIAL AS ADDRESS_SERIAL,
+            COALESCE(PAL.ORDINAL, 0) AS PAL_ORDINAL,
+            MIN(COALESCE(PAL.ORDINAL, 0)) OVER (PARTITION BY PAL.PARENT_SERIAL) AS MIN_PAL_ORDINAL
+        FROM
+            CORE.PERSON_ADDRESS_LINK AS PAL LEFT OUTER JOIN
+            CORE.ENV AS ENV ON
+                ENV.SERIAL > 0
+        WHERE
+            (PAL.EFFECTIVE_DATE IS NULL OR
+            PAL.EFFECTIVE_DATE <= ENV.POSTING_DATE) AND
+            (PAL.EXPIRATION_DATE IS NULL OR
+            PAL.EXPIRATION_DATE >= ENV.POSTING_DATE) AND
+            PAL.BAD_ADDRESS <> 'Y' AND
+            PAL.CATEGORY <> 'V'
+    ) LEFT OUTER JOIN
+        CORE.ADDRESS AS ADDRESS ON
+            ADDRESS_SERIAL = ADDRESS.SERIAL
+    WHERE
+        PAL_ORDINAL = MIN_PAL_ORDINAL
+),
+CurrentEmail(personSerial, email) AS (
+    SELECT
+        PERSON_CONTACT.PARENT_SERIAL AS PERSON_SERIAL,
+        PERSON_CONTACT.VALUE
+    FROM
+        CORE.PERSON_CONTACT AS PERSON_CONTACT CROSS JOIN
+        CORE.ENV AS ENV
+    WHERE
+        PERSON_CONTACT.CATEGORY IN ('PE','BE') AND
+        PERSON_CONTACT.BAD_CONTACT = 'N' AND
+        (PERSON_CONTACT.EXPIRATION_DATE IS NULL OR PERSON_CONTACT.EXPIRATION_DATE >= ENV.POSTING_DATE) AND
+        NOT EXISTS (SELECT 1
+                    FROM
+                        CORE.PERSON_CONTACT AS PERSON_CONTACT_INNER
+                    WHERE
+                        PERSON_CONTACT_INNER.PARENT_SERIAL = PERSON_CONTACT.PARENT_SERIAL AND
+                        PERSON_CONTACT_INNER.ORDINAL < PERSON_CONTACT.ORDINAL AND
+                        PERSON_CONTACT_INNER.CATEGORY IN ('PE','BE') AND
+                        PERSON_CONTACT_INNER.BAD_CONTACT = 'N')
+),
+CurrentPhone(personSerial, phone) AS (
+         SELECT
+             PERSON_CONTACT.PARENT_SERIAL AS PERSON_SERIAL,
+             PERSON_CONTACT.VALUE
+         FROM
+             CORE.PERSON_CONTACT AS PERSON_CONTACT
+         WHERE
+             PERSON_CONTACT.CATEGORY IN ('HP','BP','PC','BC') AND
+             PERSON_CONTACT.BAD_CONTACT = 'N' AND
+             NOT EXISTS (SELECT 1 FROM CORE.PERSON_CONTACT AS PERSON_CONTACT_INNER
+                         WHERE
+                             PERSON_CONTACT_INNER.PARENT_SERIAL = PERSON_CONTACT.PARENT_SERIAL AND
+                             PERSON_CONTACT_INNER.ORDINAL < PERSON_CONTACT.ORDINAL AND
+                             PERSON_CONTACT_INNER.CATEGORY IN ('HP','BP','PC','BC') AND
+                             PERSON_CONTACT_INNER.BAD_CONTACT = 'N')
+)
+SELECT
+    PERSON.SERIAL,
+    PERSON.FIRST_NAME AS FIRST_NAME,
+    PERSON.LAST_NAME AS LAST_NAME,
+    CurrentEmail.email AS EMAIL,
+    CurrentPhone.phone AS PHONE,
+    CurrentAddress.combinedAddress AS COMBINED_ADDRESS,
+    CurrentAddress.street AS STREET,
+    COALESCE(CurrentAddress.additionalAddressLine, NULL) AS AD2,
+    CurrentAddress.city || ', ' || CurrentAddress.state || ' ' || CurrentAddress.postalCode AS CITY_STATE
+FROM
+    CORE.PERSON AS PERSON
+    LEFT JOIN CurrentPhone ON CurrentPhone.personSerial = PERSON.SERIAL
+    LEFT JOIN CurrentAddress ON CurrentAddress.personSerial = PERSON.SERIAL
+    LEFT JOIN CurrentEmail ON CurrentEmail.personSerial = PERSON.SERIAL

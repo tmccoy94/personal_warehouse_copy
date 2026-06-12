@@ -1,0 +1,28 @@
+-- DB2: Members lost in Feb 2026 (closed general share, no remaining open general share)
+-- Matches members_lost.sql pipeline query logic exactly.
+-- Uses 2026-02-01 to 2026-02-28 — hardcoded for D0001T32 (May 2026 snapshot).
+WITH dateParams(START_DATE, END_DATE) AS (
+    VALUES (CAST('2026-02-01' AS DATE), CAST('2026-02-28' AS DATE))
+),
+closedGeneralShares AS (
+    SELECT DISTINCT PERSON.SERIAL AS PERSON_SERIAL
+    FROM dateParams CROSS JOIN
+         CORE.PERSON AS PERSON
+         JOIN CORE.ACCOUNT     AS ACCOUNT ON PERSON.SERIAL = ACCOUNT.PRIMARY_PERSON_SERIAL
+         JOIN CORE.SHARE       AS SHARE   ON ACCOUNT.SERIAL = SHARE.PARENT_SERIAL
+              AND SHARE.ID = '0001'
+              AND SHARE.CLOSE_DATE IS NOT NULL
+         LEFT JOIN CORE.PERSON_TYPE AS PERSON_TYPE ON PERSON.TYPE_SERIAL = PERSON_TYPE.SERIAL
+    WHERE (PERSON_TYPE.DESCRIPTION IS NULL OR PERSON_TYPE.DESCRIPTION != 'Vendor')
+      AND SHARE.CLOSE_DATE BETWEEN START_DATE AND END_DATE
+)
+SELECT COUNT(*) AS members_lost
+FROM closedGeneralShares AS cgs
+WHERE NOT EXISTS (
+    SELECT 1
+    FROM CORE.ACCOUNT AS acct
+    JOIN CORE.SHARE   AS share ON acct.SERIAL = share.PARENT_SERIAL
+    WHERE acct.PRIMARY_PERSON_SERIAL = cgs.PERSON_SERIAL
+      AND share.ID         = '0001'
+      AND share.CLOSE_DATE IS NULL
+)

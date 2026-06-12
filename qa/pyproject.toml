@@ -1,0 +1,16 @@
+[project]
+name = "warehouse-qa"
+version = "0.1.0"
+requires-python = ">=3.12"
+description = "Validation tool — compares DB2 source queries against PostgreSQL staging equivalents"
+
+dependencies = [
+    "ibm-db",
+    "psycopg[binary]",
+    "pandas",
+    "python-dotenv",
+    "tabulate",
+]
+
+[tool.uv]
+dev-dependencies = []

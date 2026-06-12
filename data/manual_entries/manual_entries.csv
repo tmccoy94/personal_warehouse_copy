@@ -1,0 +1,48 @@
+warehouse_table,warehouse_column,row_key,value,source_location,source_notes
+__meta__,snapshot_date,,2026-01-31,,Set to the EOM date this run targets (YYYY-MM-DD). Asset reads this value and writes it as snapshot_date on every row below.
+fct_financial_ratios_summary,net_worth_pct,,,\\FileServer\accounting\Financials\Financial Performance\2026,Net-Worth spreadsheet
+fct_financial_ratios_summary,roa_pct,,,\\FileServer\accounting\Financials\Financial Performance\2026,ROA spreadsheet
+fct_financial_ratios_summary,op_expense_pct,,,\\FileServer\accounting\Financials\Financial Performance\2026,Operating Expense spreadsheet
+fct_financial_ratios_summary,loan_to_share_pct,,,\\FileServer\accounting\Financials\Financial Performance\2026,Loan to Share spreadsheet
+fct_financial_ratios_summary,loan_delinquency_pct,,,\\FileServer\accounting\Financials\Financial Performance\2026,Loan Delinquency spreadsheet
+fct_financial_ratios_summary,loan_charge_off_ratio,,,\\FileServer\accounting\Financials\Financial Performance\2026,Loan Charge Off Ratio spreadsheet
+fct_financial_ratios_summary,loan_growth_pct,,,\\FileServer\accounting\Financials\Financial Performance\2026,Loan Growth spreadsheet
+fct_nps_summary,nps_score,,,Y:\SRMGNT\NPS Score.csv,NPS Score -- pulled from the survey vendor; lives in fct_nps_summary (split from financial ratios in Decision 22)
+fct_financial_ratios_summary,atm_member_uses,,,\\FileServer\accounting\Financials\ATM Income-Loss\2026,Prior ATM Usage -- members input tab totals for the month
+fct_financial_ratios_summary,atm_foreign_uses,,,\\FileServer\accounting\Financials\ATM Income-Loss\2026,Prior ATM Usage -- foreign input tab totals for the month
+fct_financial_ratios_summary,atm_network_ytd_net_income,,,\\FileServer\accounting\Financials\ATM Income-Loss\2026,ATM Network Profitability -- YTD net income on acctg-graph input sheet
+fct_loan_portfolio_summary,loan_total_balance,,,\\FileServer\accounting\Financials\ALM Loan and Share Growth\2026,Sheet 1 -- column B
+fct_loan_portfolio_summary,loan_income_monthly,,,\\FileServer\accounting\Financials\ALM Loan and Share Growth\2026,Sheet 1 -- column E
+fct_loan_portfolio_summary,loan_growth_ytd_pct,,,\\FileServer\accounting\Financials\ALM Loan and Share Growth\2026,Sheet 1 -- column I
+fct_loan_portfolio_summary,share_total_balance,,,\\FileServer\accounting\Financials\ALM Loan and Share Growth\2026,Sheet 1 -- column B
+fct_loan_portfolio_summary,share_income_monthly,,,\\FileServer\accounting\Financials\ALM Loan and Share Growth\2026,Sheet 1 -- column E
+fct_loan_portfolio_summary,share_growth_ytd_pct,,,\\FileServer\accounting\Financials\ALM Loan and Share Growth\2026,Sheet 1 -- column I
+fct_loan_portfolio_summary,cc_total_balance,,,\\FileServer\accounting\Financials\ALM Loan and Share Growth\2026,Sheet 1 -- column B
+fct_loan_portfolio_summary,cc_income_monthly,,,\\FileServer\accounting\Financials\ALM Loan and Share Growth\2026,Sheet 1 -- column E
+fct_loan_portfolio_summary,cc_growth_ytd_pct,,,\\FileServer\accounting\Financials\ALM Loan and Share Growth\2026,Sheet 1 -- column I
+fct_loan_portfolio_summary,loan_charge_offs,,,\\fileserver\accounting\Accounting Month End Paul\Allowance for Loan Loss\2026,Net Charge Off sheet -- column AA
+fct_loan_portfolio_summary,loan_charge_off_recoveries,,,\\fileserver\accounting\Accounting Month End Paul\Allowance for Loan Loss\2026,Net Charge Off sheet -- column AB
+fct_loan_portfolio_summary,cp_charge_offs,,,\\fileserver\accounting\Accounting Month End Paul\Allowance for Loan Loss\2026,Net Charge Off sheet -- column AA
+fct_loan_portfolio_summary,cp_charge_off_recoveries,,,\\fileserver\accounting\Accounting Month End Paul\Allowance for Loan Loss\2026,Net Charge Off sheet -- column AB
+fct_loan_portfolio_summary,atm_fraud_mtd,,,\\FileServer\accounting\Financials\Fraud GL Info\Fraud GL Activity 2026.xlsx,ATM Card Fraud tab
+fct_loan_portfolio_summary,check_loss_fraud_mtd,,,\\FileServer\accounting\Financials\Fraud GL Info\Fraud GL Activity 2026.xlsx,Check Loss Fraud tab
+fct_loan_portfolio_summary,cc_fraud_mtd,,,\\FileServer\accounting\Financials\Fraud GL Info\Fraud GL Activity 2026.xlsx,Credit Card Fraud tab
+fct_loan_portfolio_summary,debit_fraud_mtd,,,\\FileServer\accounting\Financials\Fraud GL Info\Fraud GL Activity 2026.xlsx,Debit Card Fraud tab
+fct_digital_enrollments,enrolled_count,home_banking,,,Online banking platform dashboard -- monthly enrolled users total (replaces the online_banking csv drop)
+fct_digital_channels_transactions,bill_pay_transactions,,,,Bill pay website dashboard -- log in and pull monthly transaction count
+fct_digital_channels_transactions,mobile_online_transactions,,,,Mobile/online portal dashboard -- log in and pull monthly transaction count
+fct_branch_profitability_summary,net_income,Main Branch,,\\FileServer\accounting\Financials\Income Statement\2026,Branch_Profitability spreadsheet -- Main branch net income row
+fct_branch_profitability_summary,net_income,North Branch,,\\FileServer\accounting\Financials\Income Statement\2026,Branch_Profitability spreadsheet -- North branch net income row
+fct_branch_profitability_summary,net_income,East Branch,,\\FileServer\accounting\Financials\Income Statement\2026,Branch_Profitability spreadsheet -- East branch net income row
+fct_branch_profitability_summary,net_income,South Branch,,\\FileServer\accounting\Financials\Income Statement\2026,Branch_Profitability spreadsheet -- South branch net income row
+fct_branch_profitability_summary,net_income,OP Branch,,\\FileServer\accounting\Financials\Income Statement\2026,Branch_Profitability spreadsheet -- OP / Overland Park branch net income row
+fct_atm_by_machine_summary,transactions,CPD,,\\FileServer\accounting\Financials\ATM Income-Loss\2026,Number_of_Transactions_by_ATM -- CPD machine
+fct_atm_by_machine_summary,transactions,EPD,,\\FileServer\accounting\Financials\ATM Income-Loss\2026,Number_of_Transactions_by_ATM -- EPD machine
+fct_atm_by_machine_summary,transactions,East Br,,\\FileServer\accounting\Financials\ATM Income-Loss\2026,Number_of_Transactions_by_ATM -- East Br machine
+fct_atm_by_machine_summary,transactions,HQ,,\\FileServer\accounting\Financials\ATM Income-Loss\2026,Number_of_Transactions_by_ATM -- HQ machine
+fct_atm_by_machine_summary,transactions,Joco,,\\FileServer\accounting\Financials\ATM Income-Loss\2026,Number_of_Transactions_by_ATM -- Joco / OP machine
+fct_atm_by_machine_summary,transactions,MPD,,\\FileServer\accounting\Financials\ATM Income-Loss\2026,Number_of_Transactions_by_ATM -- MPD machine
+fct_atm_by_machine_summary,transactions,Main Br,,\\FileServer\accounting\Financials\ATM Income-Loss\2026,Number_of_Transactions_by_ATM -- Main Br machine
+fct_atm_by_machine_summary,transactions,North Br,,\\FileServer\accounting\Financials\ATM Income-Loss\2026,Number_of_Transactions_by_ATM -- North Br machine
+fct_atm_by_machine_summary,transactions,SPD,,\\FileServer\accounting\Financials\ATM Income-Loss\2026,Number_of_Transactions_by_ATM -- SPD machine
+fct_atm_by_machine_summary,transactions,Worth,,\\FileServer\accounting\Financials\ATM Income-Loss\2026,Number_of_Transactions_by_ATM -- Worth machine
