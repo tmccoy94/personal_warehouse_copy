@@ -13,7 +13,7 @@ It replaced a silently-failing mesh of manually maintained CSVs — dashboards h
 - **Python / pandas / SQLAlchemy** — extract + load code; `ibm_db` for DB2, REST for JasperServer and HubSpot
 - **Docker Compose** — five services (Postgres, Dagster webserver + daemon, pg_dump backup sidecar, pgAdmin); the whole stack migrates with a directory copy + backup restore (it has actually done so — laptop to VM)
 
-## Engineering practices I'd call out
+## Engineering practices
 
 - **Idempotency everywhere** — every load is upsert or truncate-and-reload; a re-run is a recovery, not a corruption
 - **Cadence-agnostic schema** — `snapshot_date DATE` is the universal time key; switching a pipeline from monthly to daily is a schedule change, not a migration
